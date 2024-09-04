@@ -271,3 +271,19 @@ func sdpCreate(fcs []*FormatContext) (string, error) {
 		return newError(C.av_sdp_create(&fccs[0], C.int(len(fcs)), buf, C.int(size)))
 	})
 }
+
+func (fc *FormatContext) NewProgram(id int) *Program {
+	return newProgramFromC(C.av_new_program(fc.c, C.int(id)), fc)
+}
+
+func (fc *FormatContext) Programs() (ps []*Program) {
+	pcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.struct_AVProgram)(nil))](*C.struct_AVProgram))(unsafe.Pointer(fc.c.programs))
+	for i := 0; i < fc.NbPrograms(); i++ {
+		ps = append(ps, newProgramFromC(pcs[i], fc))
+	}
+	return
+}
+
+func (fc *FormatContext) NbPrograms() int {
+	return int(fc.c.nb_programs)
+}
